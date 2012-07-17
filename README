@@ -6,7 +6,7 @@ Script for building Python 2.6 and above with iOS SDK.
 IPv6 support is enabled.
 Get built Debian Packages at https://code.google.com/p/yangapp/downloads/list
 
-Now supported Python version to be built:
+Current supported Python version to be built:
     2.6.5, 2.7.2, 2.7.3
 
 Depends:
@@ -14,11 +14,12 @@ Depends:
     Dedian Package Tool 'dpkg-deb' (optional)
 
 Usage:
-    First, modify the variable defined in build.command to specify your SDK and compiler's path.
-    Then, change build.command permission to be executable and double click it to build.
-    Or you can specify the version by argument in terminal:
-        chmod +x build.command
-        ./build.command [Python Version] [Debian Package Build #]
+    1. Modify the variables defined in build.command 
+           to specify your SDK and compiler's path.
+    2. Change build.command permission to be executable and double click it to build.
+       Or you can specify the version by argument in terminal:
+           chmod +x build.command
+           ./build.command [Python Version] [Debian Package Build #]
 
 Current Module Status:
 
