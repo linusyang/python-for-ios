@@ -20,7 +20,7 @@ Usage:
         chmod +x build.command
         ./build.command [Python Version] [Debian Package Build #]
 
-Current Moudle Status:
+Current Module Status:
 
 2.6
     Failed to find the necessary bits to build these modules:
