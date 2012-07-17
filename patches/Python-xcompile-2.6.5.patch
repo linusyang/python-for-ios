@@ -1,0 +1,506 @@
+diff -Naur Python-2.6.5-orig/Lib/distutils/util.py Python-2.6.5/Lib/distutils/util.py
+--- Python-2.6.5-orig/Lib/distutils/util.py	2010-01-09 07:27:00.000000000 +0800
++++ Python-2.6.5/Lib/distutils/util.py	2012-03-18 10:51:48.000000000 +0800
+@@ -14,171 +14,7 @@
+ from distutils.errors import DistutilsByteCompileError
+ 
+ def get_platform ():
+-    """Return a string that identifies the current platform.  This is used
+-    mainly to distinguish platform-specific build directories and
+-    platform-specific built distributions.  Typically includes the OS name
+-    and version and the architecture (as supplied by 'os.uname()'),
+-    although the exact information included depends on the OS; eg. for IRIX
+-    the architecture isn't particularly important (IRIX only runs on SGI
+-    hardware), but for Linux the kernel version isn't particularly
+-    important.
+-
+-    Examples of returned values:
+-       linux-i586
+-       linux-alpha (?)
+-       solaris-2.6-sun4u
+-       irix-5.3
+-       irix64-6.2
+-
+-    Windows will return one of:
+-       win-amd64 (64bit Windows on AMD64 (aka x86_64, Intel64, EM64T, etc)
+-       win-ia64 (64bit Windows on Itanium)
+-       win32 (all others - specifically, sys.platform is returned)
+-
+-    For other non-POSIX platforms, currently just returns 'sys.platform'.
+-    """
+-    if os.name == 'nt':
+-        # sniff sys.version for architecture.
+-        prefix = " bit ("
+-        i = string.find(sys.version, prefix)
+-        if i == -1:
+-            return sys.platform
+-        j = string.find(sys.version, ")", i)
+-        look = sys.version[i+len(prefix):j].lower()
+-        if look=='amd64':
+-            return 'win-amd64'
+-        if look=='itanium':
+-            return 'win-ia64'
+-        return sys.platform
+-
+-    if os.name != "posix" or not hasattr(os, 'uname'):
+-        # XXX what about the architecture? NT is Intel or Alpha,
+-        # Mac OS is M68k or PPC, etc.
+-        return sys.platform
+-
+-    # Try to distinguish various flavours of Unix
+-
+-    (osname, host, release, version, machine) = os.uname()
+-
+-    # Convert the OS name to lowercase, remove '/' characters
+-    # (to accommodate BSD/OS), and translate spaces (for "Power Macintosh")
+-    osname = string.lower(osname)
+-    osname = string.replace(osname, '/', '')
+-    machine = string.replace(machine, ' ', '_')
+-    machine = string.replace(machine, '/', '-')
+-
+-    if osname[:5] == "linux":
+-        # At least on Linux/Intel, 'machine' is the processor --
+-        # i386, etc.
+-        # XXX what about Alpha, SPARC, etc?
+-        return  "%s-%s" % (osname, machine)
+-    elif osname[:5] == "sunos":
+-        if release[0] >= "5":           # SunOS 5 == Solaris 2
+-            osname = "solaris"
+-            release = "%d.%s" % (int(release[0]) - 3, release[2:])
+-        # fall through to standard osname-release-machine representation
+-    elif osname[:4] == "irix":              # could be "irix64"!
+-        return "%s-%s" % (osname, release)
+-    elif osname[:3] == "aix":
+-        return "%s-%s.%s" % (osname, version, release)
+-    elif osname[:6] == "cygwin":
+-        osname = "cygwin"
+-        rel_re = re.compile (r'[\d.]+')
+-        m = rel_re.match(release)
+-        if m:
+-            release = m.group()
+-    elif osname[:6] == "darwin":
+-        #
+-        # For our purposes, we'll assume that the system version from
+-        # distutils' perspective is what MACOSX_DEPLOYMENT_TARGET is set
+-        # to. This makes the compatibility story a bit more sane because the
+-        # machine is going to compile and link as if it were
+-        # MACOSX_DEPLOYMENT_TARGET.
+-        from distutils.sysconfig import get_config_vars
+-        cfgvars = get_config_vars()
+-
+-        macver = os.environ.get('MACOSX_DEPLOYMENT_TARGET')
+-        if not macver:
+-            macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
+-
+-        if 1:
+-            # Always calculate the release of the running machine,
+-            # needed to determine if we can build fat binaries or not.
+-
+-            macrelease = macver
+-            # Get the system version. Reading this plist is a documented
+-            # way to get the system version (see the documentation for
+-            # the Gestalt Manager)
+-            try:
+-                f = open('/System/Library/CoreServices/SystemVersion.plist')
+-            except IOError:
+-                # We're on a plain darwin box, fall back to the default
+-                # behaviour.
+-                pass
+-            else:
+-                m = re.search(
+-                        r'<key>ProductUserVisibleVersion</key>\s*' +
+-                        r'<string>(.*?)</string>', f.read())
+-                f.close()
+-                if m is not None:
+-                    macrelease = '.'.join(m.group(1).split('.')[:2])
+-                # else: fall back to the default behaviour
+-
+-        if not macver:
+-            macver = macrelease
+-
+-        if macver:
+-            from distutils.sysconfig import get_config_vars
+-            release = macver
+-            osname = "macosx"
+-
+-            if (macrelease + '.') >= '10.4.' and \
+-                    '-arch' in get_config_vars().get('CFLAGS', '').strip():
+-                # The universal build will build fat binaries, but not on
+-                # systems before 10.4
+-                #
+-                # Try to detect 4-way universal builds, those have machine-type
+-                # 'universal' instead of 'fat'.
+-
+-                machine = 'fat'
+-                cflags = get_config_vars().get('CFLAGS')
+-
+-                archs = re.findall('-arch\s+(\S+)', cflags)
+-                archs.sort()
+-                archs = tuple(archs)
+-
+-                if len(archs) == 1:
+-                    machine = archs[0]
+-                elif archs == ('i386', 'ppc'):
+-                    machine = 'fat'
+-                elif archs == ('i386', 'x86_64'):
+-                    machine = 'intel'
+-                elif archs == ('i386', 'ppc', 'x86_64'):
+-                    machine = 'fat3'
+-                elif archs == ('ppc64', 'x86_64'):
+-                    machine = 'fat64'
+-                elif archs == ('i386', 'ppc', 'ppc64', 'x86_64'):
+-                    machine = 'universal'
+-                else:
+-                    raise ValueError(
+-                       "Don't know machine value for archs=%r"%(archs,))
+-
+-            elif machine == 'i386':
+-                # On OSX the machine type returned by uname is always the
+-                # 32-bit variant, even if the executable architecture is
+-                # the 64-bit variant
+-                if sys.maxint >= 2**32:
+-                    machine = 'x86_64'
+-
+-            elif machine in ('PowerPC', 'Power_Macintosh'):
+-                # Pick a sane name for the PPC architecture.
+-                machine = 'ppc'
+-
+-                # See 'i386' case
+-                if sys.maxint >= 2**32:
+-                    machine = 'ppc64'
+-
+-    return "%s-%s-%s" % (osname, release, machine)
++    return "darwin-10.5-arm"
+ 
+ # get_platform ()
+ 
+diff -Naur Python-2.6.5-orig/Makefile.pre.in Python-2.6.5/Makefile.pre.in
+--- Python-2.6.5-orig/Makefile.pre.in	2009-12-24 22:19:00.000000000 +0800
++++ Python-2.6.5/Makefile.pre.in	2012-03-18 10:50:57.000000000 +0800
+@@ -175,6 +175,7 @@
+ 
+ PYTHON=		python$(EXE)
+ BUILDPYTHON=	python$(BUILDEXE)
++HOSTPYTHON=     ./$(BUILDPYTHON)
+ 
+ # The task to run while instrument when building the profile-opt target
+ PROFILE_TASK=	$(srcdir)/Tools/pybench/pybench.py -n 2 --with-gc --with-syscheck
+@@ -206,6 +207,8 @@
+ # Parser
+ PGEN=		Parser/pgen$(EXE)
+ 
++HOSTPGEN=   $(PGEN)
++
+ POBJS=		\
+ 		Parser/acceler.o \
+ 		Parser/grammar1.o \
+@@ -394,8 +397,8 @@
+ # Build the shared modules
+ sharedmods: $(BUILDPYTHON)
+ 	@case $$MAKEFLAGS in \
+-	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py -q build;; \
+-	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py build;; \
++	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' $(HOSTPYTHON) -E $(srcdir)/setup.py -q build;; \
++	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' $(HOSTPYTHON) -E $(srcdir)/setup.py build;; \
+ 	esac
+ 
+ # Build static library
+@@ -517,7 +520,7 @@
+ 
+ $(GRAMMAR_H) $(GRAMMAR_C): $(PGEN) $(GRAMMAR_INPUT)
+ 		-@$(INSTALL) -d Include
+-		-$(PGEN) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
++		-$(HOSTPGEN) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
+ 
+ $(PGEN):	$(PGENOBJS)
+ 		$(CC) $(OPT) $(LDFLAGS) $(PGENOBJS) $(LIBS) -o $(PGEN)
+@@ -886,24 +889,24 @@
+ 		done; \
+ 	done
+ 	$(INSTALL_DATA) $(srcdir)/LICENSE $(DESTDIR)$(LIBDEST)/LICENSE.txt
+-	PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
+-		./$(BUILDPYTHON) -Wi -tt $(DESTDIR)$(LIBDEST)/compileall.py \
++	-PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
++		$(HOSTPYTHON) -Wi -tt $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST) -f \
+ 		-x 'bad_coding|badsyntax|site-packages' $(DESTDIR)$(LIBDEST)
+-	PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
+-		./$(BUILDPYTHON) -Wi -tt -O $(DESTDIR)$(LIBDEST)/compileall.py \
++	-PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
++		$(HOSTPYTHON) -Wi -tt -O $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST) -f \
+ 		-x 'bad_coding|badsyntax|site-packages' $(DESTDIR)$(LIBDEST)
+ 	-PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
+-		./$(BUILDPYTHON) -Wi -t $(DESTDIR)$(LIBDEST)/compileall.py \
++		$(HOSTPYTHON) -Wi -t $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST)/site-packages -f \
+ 		-x badsyntax $(DESTDIR)$(LIBDEST)/site-packages
+ 	-PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
+-		./$(BUILDPYTHON) -Wi -t -O $(DESTDIR)$(LIBDEST)/compileall.py \
++		$(HOSTPYTHON) -Wi -t -O $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST)/site-packages -f \
+ 		-x badsyntax $(DESTDIR)$(LIBDEST)/site-packages
+ 	-PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
+-		./$(BUILDPYTHON) -Wi -t -c "import lib2to3.pygram, lib2to3.patcomp;lib2to3.patcomp.PatternCompiler()"
++		$(HOSTPYTHON) -Wi -t -c "import lib2to3.pygram, lib2to3.patcomp;lib2to3.patcomp.PatternCompiler()"
+ 
+ # Create the PLATDIR source directory, if one wasn't distributed..
+ $(srcdir)/Lib/$(PLATDIR):
+@@ -1001,7 +1004,8 @@
+ # Install the dynamically loadable modules
+ # This goes into $(exec_prefix)
+ sharedinstall:
+-	$(RUNSHARED) ./$(BUILDPYTHON) -E $(srcdir)/setup.py install \
++	CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' CROSS_COMPILE='$(CROSS_COMPILE)' \
++	$(RUNSHARED) $(HOSTPYTHON) -E $(srcdir)/setup.py install \
+ 	   	--prefix=$(prefix) \
+ 		--install-scripts=$(BINDIR) \
+ 		--install-platlib=$(DESTSHARED) \
+diff -Naur Python-2.6.5-orig/configure Python-2.6.5/configure
+--- Python-2.6.5-orig/configure	2010-03-10 05:47:00.000000000 +0800
++++ Python-2.6.5/configure	2012-03-18 10:50:57.000000000 +0800
+@@ -19355,15 +19355,13 @@
+ 	if test "$ipv6" = "yes"; then
+ 		echo 'Fatal: You must get working getaddrinfo() function.'
+ 		echo '       or you can specify "--disable-ipv6"'.
+-		exit 1
+ 	fi
+-else
++fi
+ 
+ cat >>confdefs.h <<\_ACEOF
+ #define HAVE_GETADDRINFO 1
+ _ACEOF
+ 
+-fi
+ 
+ for ac_func in getnameinfo
+ do
+@@ -25016,14 +25014,14 @@
+ 
+ { echo "$as_me:$LINENO: checking for %zd printf() format support" >&5
+ echo $ECHO_N "checking for %zd printf() format support... $ECHO_C" >&6; }
+-if test "$cross_compiling" = yes; then
+-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+-See \`config.log' for more details." >&5
+-echo "$as_me: error: cannot run test program while cross compiling
+-See \`config.log' for more details." >&2;}
+-   { (exit 1); exit 1; }; }
+-else
+-  cat >conftest.$ac_ext <<_ACEOF
++#if test "$cross_compiling" = yes; then
++#  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
++#See \`config.log' for more details." >&5
++#echo "$as_me: error: cannot run test program while cross compiling
++#See \`config.log' for more details." >&2;}
++#   { (exit 1); exit 1; }; }
++#else
++cat >conftest.$ac_ext <<_ACEOF
+ /* confdefs.h.  */
+ _ACEOF
+ cat confdefs.h >>conftest.$ac_ext
+@@ -25101,7 +25099,7 @@
+ echo "${ECHO_T}no" >&6; }
+ fi
+ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+-fi
++#fi
+ 
+ 
+ 
+diff -Naur Python-2.6.5-orig/configure.in Python-2.6.5/configure.in
+--- Python-2.6.5-orig/configure.in	2010-03-10 05:47:00.000000000 +0800
++++ Python-2.6.5/configure.in	2012-03-18 10:50:57.000000000 +0800
+@@ -2999,11 +2999,9 @@
+ 	if test "$ipv6" = "yes"; then
+ 		echo 'Fatal: You must get working getaddrinfo() function.'
+ 		echo '       or you can specify "--disable-ipv6"'.
+-		exit 1
+ 	fi
+-else
+-	AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have the getaddrinfo function.])
+ fi
++AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have the getaddrinfo function.])
+ AC_CHECK_FUNCS(getnameinfo)
+ 
+ # checks for structures
+@@ -3844,48 +3842,48 @@
+   AC_MSG_RESULT(no)
+ fi
+ 
+-AC_MSG_CHECKING(for %zd printf() format support)
+-AC_TRY_RUN([#include <stdio.h>
+-#include <stddef.h>
+-#include <string.h>
+-
+-#ifdef HAVE_SYS_TYPES_H
+-#include <sys/types.h>
+-#endif
+-
+-#ifdef HAVE_SSIZE_T
+-typedef ssize_t Py_ssize_t;
+-#elif SIZEOF_VOID_P == SIZEOF_LONG
+-typedef long Py_ssize_t;
+-#else
+-typedef int Py_ssize_t;
+-#endif
+-
+-int main()
+-{
+-    char buffer[256];
+-
+-    if(sprintf(buffer, "%zd", (size_t)123) < 0)
+-       	return 1;
+-
+-    if (strcmp(buffer, "123"))
+-	return 1;
+-
+-    if (sprintf(buffer, "%zd", (Py_ssize_t)-123) < 0)
+-       	return 1;
+-
+-    if (strcmp(buffer, "-123"))
+-	return 1;
+-
+-    return 0;
+-}],
+-[AC_MSG_RESULT(yes)
+- AC_DEFINE(PY_FORMAT_SIZE_T, "z", [Define to printf format modifier for Py_ssize_t])],
+- AC_MSG_RESULT(no))
++#AC_MSG_CHECKING(for %zd printf() format support)
++#AC_TRY_RUN([#include <stdio.h>
++##include <stddef.h>
++##include <string.h>
++
++##ifdef HAVE_SYS_TYPES_H
++##include <sys/types.h>
++##endif
++
++##ifdef HAVE_SSIZE_T
++#typedef ssize_t Py_ssize_t;
++##elif SIZEOF_VOID_P == SIZEOF_LONG
++#typedef long Py_ssize_t;
++##else
++#typedef int Py_ssize_t;
++##endif
++#
++#int main()
++#{
++#    char buffer[256];
++#
++#    if(sprintf(buffer, "%zd", (size_t)123) < 0)
++#       	return 1;#
++#
++#    if (strcmp(buffer, "123"))
++#	return 1;
++#
++#    if (sprintf(buffer, "%zd", (Py_ssize_t)-123) < 0)
++#       	return 1;
++#
++#    if (strcmp(buffer, "-123"))
++#	return 1;
++#
++#   return 0;
++#}],
++#[AC_MSG_RESULT(yes)
++# AC_DEFINE(PY_FORMAT_SIZE_T, "z", [Define to printf format modifier for Py_ssize_t])],
++# AC_MSG_RESULT(no))
+ 
+ AC_CHECK_TYPE(socklen_t,,
+   AC_DEFINE(socklen_t,int,
+-            Define to `int' if <sys/socket.h> does not define.),[
++            Define to 'int' if <sys/socket.h> does not define.),[
+ #ifdef HAVE_SYS_TYPES_H
+ #include <sys/types.h>
+ #endif
+diff -Naur Python-2.6.5-orig/setup.py Python-2.6.5/setup.py
+--- Python-2.6.5-orig/setup.py	2010-03-08 15:08:00.000000000 +0800
++++ Python-2.6.5/setup.py	2012-03-18 10:50:57.000000000 +0800
+@@ -17,7 +17,7 @@
+ from distutils.command.install_lib import install_lib
+ 
+ # This global variable is used to hold the list of modules to be disabled.
+-disabled_module_list = []
++disabled_module_list = ['_tkinter']
+ 
+ def add_dir_to_list(dirlist, dir):
+     """Add the directory 'dir' to the list 'dirlist' (at the front) if
+@@ -267,33 +267,40 @@
+             self.announce('WARNING: skipping import check for Cygwin-based "%s"'
+                 % ext.name)
+             return
++        if os.environ.get('CROSS_COMPILE_TARGET') == 'yes':
++            return
++
+         ext_filename = os.path.join(
+             self.build_lib,
+             self.get_ext_filename(self.get_ext_fullname(ext.name)))
+         try:
+             imp.load_dynamic(ext.name, ext_filename)
+         except ImportError, why:
+-            self.failed.append(ext.name)
+-            self.announce('*** WARNING: renaming "%s" since importing it'
+-                          ' failed: %s' % (ext.name, why), level=3)
+-            assert not self.inplace
+-            basename, tail = os.path.splitext(ext_filename)
+-            newname = basename + "_failed" + tail
+-            if os.path.exists(newname):
+-                os.remove(newname)
+-            os.rename(ext_filename, newname)
+-
+-            # XXX -- This relies on a Vile HACK in
+-            # distutils.command.build_ext.build_extension().  The
+-            # _built_objects attribute is stored there strictly for
+-            # use here.
+-            # If there is a failure, _built_objects may not be there,
+-            # so catch the AttributeError and move on.
+-            try:
+-                for filename in self._built_objects:
+-                    os.remove(filename)
+-            except AttributeError:
+-                self.announce('unable to remove files (ignored)')
++            if os.environ.get('CROSS_COMPILE_TARGET') != "yes":
++                self.announce('*** WARNING: renaming "%s" since importing it'
++                              ' failed: %s' % (ext.name, why), level=3)
++                assert not self.inplace
++                basename, tail = os.path.splitext(ext_filename)
++                newname = basename + "_failed" + tail
++                if os.path.exists(newname):
++                    os.remove(newname)
++                os.rename(ext_filename, newname)
++
++                # XXX -- This relies on a Vile HACK in
++                # distutils.command.build_ext.build_extension().  The
++                # _built_objects attribute is stored there strictly for
++                # use here.
++                # If there is a failure, _built_objects may not be there,
++                # so catch the AttributeError and move on.
++                try:
++                    for filename in self._built_objects:
++                        os.remove(filename)
++                except AttributeError:
++                    self.announce('unable to remove files (ignored)')
++            else:
++                self.announce('WARNING: "%s" failed importing, but we leave it '
++                              'because we are cross-compiling' %
++                              ext.name)
+         except:
+             exc_type, why, tb = sys.exc_info()
+             self.announce('*** WARNING: importing extension "%s" '
+@@ -668,7 +675,7 @@
+ 
+         if (ssl_incs is not None and
+             ssl_libs is not None and
+-            openssl_ver >= 0x00907000):
++            openssl_ver >= 0x00907000 and False):
+             # The _hashlib module wraps optimized implementations
+             # of hash functions from the OpenSSL library.
+             exts.append( Extension('_hashlib', ['_hashopenssl.c'],
+@@ -688,7 +695,7 @@
+                             depends = ['md5.h']) )
+             missing.append('_hashlib')
+ 
+-        if (openssl_ver < 0x00908000):
++        if (True or openssl_ver < 0x00908000):
+             # OpenSSL doesn't do these until 0.9.8 so we'll bring our own hash
+             exts.append( Extension('_sha256', ['sha256module.c']) )
+             exts.append( Extension('_sha512', ['sha512module.c']) )

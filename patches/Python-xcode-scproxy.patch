@@ -1,0 +1,20 @@
+--- a/SCSchemaDefinitions.h	2010-10-22 12:09:14.000000000 +0800
++++ b/SCSchemaDefinitions.h	2012-03-17 17:38:18.000000000 +0800
+@@ -3214,7 +3214,7 @@
+ 		      ,"Automatic"                                      \
+ 		      ,                                                 )
+ 
+-  SC_SCHEMA_DECLARATION(kSCValNetIPv6ConfigMethodLinkLocal, __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA))
++  SC_SCHEMA_DECLARATION(kSCValNetIPv6ConfigMethodLinkLocal, __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_NA))
+   #define kSCValNetIPv6ConfigMethodLinkLocal                            \
+ 	  SC_SCHEMA_KV(kSCValNetIPv6ConfigMethodLinkLocal               \
+ 		      ,"LinkLocal"                                      \
+@@ -3956,7 +3956,7 @@
+ 		      ,"ProxyAutoConfigEnable"                          \
+ 		      ,CFNumber (0 or 1)                                )
+ 
+-  SC_SCHEMA_DECLARATION(kSCPropNetProxiesProxyAutoConfigJavaScript, __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA))
++  SC_SCHEMA_DECLARATION(kSCPropNetProxiesProxyAutoConfigJavaScript, __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_NA))
+   #define kSCPropNetProxiesProxyAutoConfigJavaScript                    \
+ 	  SC_SCHEMA_KV(kSCPropNetProxiesProxyAutoConfigJavaScript       \
+ 		      ,"ProxyAutoConfigJavaScript"                      \
