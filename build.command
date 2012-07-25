@@ -144,7 +144,7 @@ make distclean
 patch -p1 < ../patches/Python-xcompile-${PYVER}.patch
 
 # set up environment variables for cross compilation
-export CPPFLAGS="-I${GCCINCLUDE} -I$SDKROOT/usr/include/ -I$PRELIBLOC/usr/lib"
+export CPPFLAGS="-I${GCCINCLUDE} -I$SDKROOT/usr/include/ -I$PRELIBLOC/usr/include"
 export CFLAGS="$CPPFLAGS -pipe -no-cpp-precomp -isysroot $SDKROOT"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-isysroot $SDKROOT -miphoneos-version-min=3.0 -L$SDKROOT/usr/lib/ -L$PRELIBLOC/usr/lib"
