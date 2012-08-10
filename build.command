@@ -26,25 +26,29 @@ export PYVER="2.7.3"
 if [ -n "$1" ]; then
     export PYVER="$1"
 fi
-export NOWBUILD="1"
+export NOWBUILD="2"
 if [ -n "$2" ]; then
     export NOWBUILD="$2"
 fi
 
 echo "[Cross compile Python ${PYVER} (Build ${NOWBUILD}) for iOS]"
-echo "[Script version 0.1 by Linus Yang]"
+echo "[Script version 0.1.1 by Linus Yang]"
 echo ""
 
 # sdk variable
-export IOS_VERSION="4.2"
-export DEVROOT="/Developer/Platforms/iPhoneOS.platform/Developer"
+export IOS_VERSION="5.1"
+export DEVROOT=$(xcode-select -print-path)"/Platforms/iPhoneOS.platform/Developer"
 export SDKROOT="$DEVROOT/SDKs/iPhoneOS${IOS_VERSION}.sdk"
-export HOSTCC="$DEVROOT/usr/bin/arm-apple-darwin10-gcc-4.2.1"
-export HOSTCXX="$DEVROOT/usr/bin/arm-apple-darwin10-g++-4.2.1"
-export GCCINCLUDE="$SDKROOT/usr/lib/gcc/arm-apple-darwin10/4.2.1/include/"
+export HOSTCC="$DEVROOT/usr/bin/clang"
+export HOSTCXX="$DEVROOT/usr/bin/clang"
 
 # other variable
-export NOWDIR="$(dirname "$0")"
+export NOWPATH="$(dirname "$0")"
+if [ ! -f "${NOWPATH}/realpath" ]; then
+    echo "Fatal: Missing realpath binary."
+    exit 1
+fi
+export NOWDIR="$(dirname $(${NOWPATH}/realpath "$0"))"
 export PYSHORT=${PYVER:0:3}
 export PROXYHEAD="$SDKROOT/System/Library/Frameworks/SystemConfiguration.framework/Headers"
 export LDIDLOC="$NOWDIR/ldid"
@@ -99,13 +103,11 @@ fi
 
 # extract dependency library
 echo '[Extracting dependency libraries]'
-rm -rf ${PRELIBLOC}
-mkdir -p ${PRELIBLOC} && cd ${PRELIBLOC}
-tar zxf ${PRELIB}
-cd ..
+rm -rf "${PRELIBLOC}"
+tar zxf "${PRELIB}"
 
 # patch xcode header
-if [ "${PYSHORT}" '>' "2.6" ]; then
+if [ "${PYSHORT}" '>' "2.6" -a "$(uname -r)" '<' "11.0.0" ]; then
     echo "[Patching Xcode header to enable scproxy module]"
     echo "[* Need root privilege, type your password *]"
     cd "$PROXYHEAD"
@@ -132,7 +134,7 @@ fi
 
 # build for native machine
 echo '[Building for host system]'
-./configure --prefix="$PWD/_install_host/usr" --enable-shared --enable-ipv6 --disable-toolbox-glue
+./configure CC="clang" --prefix="$PWD/_install_host/usr" --enable-shared --enable-ipv6 --disable-toolbox-glue
 make python.exe Parser/pgen
 mv python.exe hostpython
 mv Parser/pgen Parser/hostpgen
@@ -144,8 +146,8 @@ make distclean
 patch -p1 < ../patches/Python-xcompile-${PYVER}.patch
 
 # set up environment variables for cross compilation
-export CPPFLAGS="-I${GCCINCLUDE} -I$SDKROOT/usr/include/ -I$PRELIBLOC/usr/include"
-export CFLAGS="$CPPFLAGS -pipe -no-cpp-precomp -isysroot $SDKROOT"
+export CPPFLAGS="-no-cpp-precomp -I$SDKROOT/usr/include/ -I$PRELIBLOC/usr/include"
+export CFLAGS="$CPPFLAGS -arch armv6 -pipe -isysroot $SDKROOT"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-isysroot $SDKROOT -miphoneos-version-min=3.0 -L$SDKROOT/usr/lib/ -L$PRELIBLOC/usr/lib"
 export CPP="/usr/bin/cpp"
@@ -173,12 +175,27 @@ sed -i '' "s:${NOWDIR}/Python-${PYVER}/_install::g" python${PYSHORT}-config
 cd "${NOWDIR}"
 
 # reverse patched xcode header
-if [ "${PYSHORT}" '>' "2.6" ]; then
+if [ "${PYSHORT}" '>' "2.6" -a "$(uname -r)" '<' "11.0.0" ]; then
     echo "[Reverse patch for Xcode header file]"
     echo "[* Need root privilege, type your password *]"
     cd "${PROXYHEAD}"
     sudo mv -f SCSchemaDefinitions-org.h SCSchemaDefinitions.h
     cd "${NOWDIR}"
+fi
+
+# reverse iphone gcc workaround
+if [ -f "$NATICC" ]; then
+    echo "[Remove workaround gcc symlink]"
+    echo "[* Need root privilege, type your password *]"
+    sudo rm -f "$NATICC"
+    echo "Symlink is removed."
+fi
+
+if [ -f "$NATICXX" ]; then
+    echo "[Remove workaround gcc symlink]"
+    echo "[* Need root privilege, type your password *]"
+    sudo rm -f "$NATICXX"
+    echo "Symlink is removed."
 fi
 
 # make debian package
