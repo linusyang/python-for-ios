@@ -26,13 +26,13 @@ export PYVER="2.7.3"
 if [ -n "$1" ]; then
     export PYVER="$1"
 fi
-export NOWBUILD="2"
+export NOWBUILD="3"
 if [ -n "$2" ]; then
     export NOWBUILD="$2"
 fi
 
 echo "[Cross compile Python ${PYVER} (Build ${NOWBUILD}) for iOS]"
-echo "[Script version 0.1.1 by Linus Yang]"
+echo "[Script version 0.1.2 by Linus Yang]"
 echo ""
 
 # sdk variable
@@ -146,11 +146,10 @@ make distclean
 patch -p1 < ../patches/Python-xcompile-${PYVER}.patch
 
 # set up environment variables for cross compilation
-export CPPFLAGS="-no-cpp-precomp -I$SDKROOT/usr/include/ -I$PRELIBLOC/usr/include"
+export CPPFLAGS="-I$SDKROOT/usr/include/ -I$PRELIBLOC/usr/include"
 export CFLAGS="$CPPFLAGS -arch armv6 -pipe -isysroot $SDKROOT"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-isysroot $SDKROOT -miphoneos-version-min=3.0 -L$SDKROOT/usr/lib/ -L$PRELIBLOC/usr/lib"
-export CPP="/usr/bin/cpp"
 export CC="$NATICC"
 export CXX="$NATICXX"
 export LD="$DEVROOT/usr/bin/ld"
