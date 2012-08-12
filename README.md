@@ -15,11 +15,11 @@ Script for building Python 2.6 and above with iOS SDK. **IPv6 support is enabled
 * Dedian Package Tool 'dpkg-deb' (*optional*)
 
 ##Usage:
-* Change build.command permission to be executable and double click it to build.
-* Or you can specify the version by argument in terminal:
+Change build.command permission to be executable and double click it to build.    
+Or you can specify the version by argument in terminal:    
     
-    chmod +x build.command
-    ./build.command [Python Version] [Debian Package Build #]
+    chmod +x build.command   
+    ./build.command [Python Version] [Debian Package Build #]   
 
 ##Current Module Status:
 
