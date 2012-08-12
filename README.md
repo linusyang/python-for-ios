@@ -11,14 +11,14 @@ Script for building Python 2.6 and above with iOS SDK. **IPv6 support is enabled
      2.6.5, 2.7.2, 2.7.3
 
 ##Depends:
-    Mac OS X and iOS SDK
-    Dedian Package Tool 'dpkg-deb' (*optional*)
+Mac OS X and iOS SDK
+Dedian Package Tool 'dpkg-deb' (*optional*)
 
 ##Usage:
-    Change build.command permission to be executable and double click it to build.
-    Or you can specify the version by argument in terminal:
-        `chmod +x build.command
-        ./build.command [Python Version] [Debian Package Build #]`
+Change build.command permission to be executable and double click it to build.
+Or you can specify the version by argument in terminal:
+    chmod +x build.command
+    ./build.command [Python Version] [Debian Package Build #]`
 
 ##Current Module Status:
 
@@ -39,6 +39,6 @@ Script for building Python 2.6 and above with iOS SDK. **IPv6 support is enabled
     To find the necessary bits, look in setup.py in detect_modules() for the module's name.
 
 ##Reference:
-    http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
-    https://github.com/cobbal/python-for-iphone
+http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
+https://github.com/cobbal/python-for-iphone
 
