@@ -1,10 +1,10 @@
 Python for iOS
 ========
 
-Script written by Linus Yang <laokongzi@gmail.com>
+Script written by Linus Yang <laokongzi@gmail.com>  
 Licensed under GPLv3
 
-Script for building Python 2.6 and above with iOS SDK. **IPv6 support is enabled.**
+Script for building Python 2.6 and above with iOS SDK. **IPv6 support is enabled.**  
 *Get built Debian Packages at https://code.google.com/p/yangapp/downloads/list*
 
 ##Current supported Python version to be built:
@@ -17,8 +17,9 @@ Script for building Python 2.6 and above with iOS SDK. **IPv6 support is enabled
 ##Usage:
 * Change build.command permission to be executable and double click it to build.
 * Or you can specify the version by argument in terminal:
-	chmod +x build.command
-	./build.command [Python Version] [Debian Package Build #]
+
+      chmod +x build.command
+      ./build.command [Python Version] [Debian Package Build #]
 
 ##Current Module Status:
 
