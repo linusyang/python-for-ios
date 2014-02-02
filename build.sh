@@ -134,7 +134,7 @@ if [ -x "$DPKGLOC" ]; then
     mkdir -p "DEBIAN"
     NOWSIZE="$(du -s -k usr | awk '{print $1}')"
     CTRLFILE="Package: com.linusyang.python27\nPriority: optional\nProvides: python\nConflicts: python\nReplaces: python\nSection: Scripting\nInstalled-Size: $NOWSIZE\nMaintainer: Linus Yang <laokongzi@gmail.com>\nSponsor: Linus Yang <http://linusyang.com/>\nArchitecture: iphoneos-arm\nVersion: ${PYVER}-$NOWBUILD\nDepends: berkeleydb, bzip2, libffi, ncurses, openssl, readline, sqlite3\nDescription: architectural programming language\nName: Python $PYSHORT\nHomepage: http://www.python.org/\nTag: purpose::console\n"
-    PREFILE="#!/bin/sh\n/usr/libexec/cydia/move.sh /usr/lib/python${PYSHORT}\nexit 0"
+    PREFILE="#!/bin/sh\n/usr/libexec/cydia/move.sh /usr/lib/python${PYSHORT}\nexit 0\n"
     DEBNAME="com.linusyang.python27_${PYVER}-$NOWBUILD"
     echo -ne "$CTRLFILE" > DEBIAN/control
     echo -ne "$PREFILE" > DEBIAN/preinst
