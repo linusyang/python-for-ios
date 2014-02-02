@@ -2,4 +2,5 @@
 prelib/
 Python-*/
 Python-*.tgz
-python*.deb
+Python-*.tar.xz
+*python*.deb
