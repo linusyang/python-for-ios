@@ -25,7 +25,7 @@ set -e
 # set version
 export PYVER="2.7.6"
 export PYSHORT="2.7"
-export NOWBUILD="1"
+export NOWBUILD="2"
 
 echo "[Cross compile Python ${PYVER} (Build ${NOWBUILD}) for iOS]"
 echo "[Script by Linus Yang]"
