@@ -4,10 +4,11 @@ Python for iOS
 Script written by Linus Yang <laokongzi@gmail.com>  
 Licensed under GPLv3
 
-Script for building Python 2.7.6 with iOS SDK (with IPv6 support, gevent, pyOpenSSL and M2Crypto).
-*Get built Debian Packages at https://code.google.com/p/yangapp/downloads/list*
+Script for building Python 2.7.6 with iOS SDK (with IPv6 support, gevent, pyOpenSSL and M2Crypto).  
 
-##Depends:
+__Get latest built Debian Packages at [Release Site](https://github.com/linusyang/python-for-ios/releases).__
+
+##Build Depends:
 * Mac OS X and iOS 5.1 SDK
 
 ##Usage:
