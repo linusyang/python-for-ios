@@ -193,6 +193,19 @@ index cf75650..dead5d4 100644
  	   	--prefix=$(prefix) \
  		--install-scripts=$(BINDIR) \
  		--install-platlib=$(DESTSHARED) \
+diff --git a/Modules/getbuildinfo.c b/Modules/getbuildinfo.c
+index 7069b6e..83ae2f1 100644
+--- a/Modules/getbuildinfo.c
++++ b/Modules/getbuildinfo.c
+@@ -49,7 +49,7 @@ Py_GetBuildInfo(void)
+     const char *sep = *revision ? ":" : "";
+     const char *hgid = _Py_hgidentifier();
+     if (!(*hgid))
+-        hgid = "default";
++        hgid = "linusyang";
+     PyOS_snprintf(buildinfo, sizeof(buildinfo),
+                   "%s%s%s, %.20s, %.9s", hgid, sep, revision,
+                   DATE, TIME);
 diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
 index 8352dd3..5576f5b 100644
 --- a/Modules/posixmodule.c

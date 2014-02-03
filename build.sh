@@ -25,7 +25,7 @@ set -e
 # set version
 export PYVER="2.7.6"
 export PYSHORT="2.7"
-export NOWBUILD="2"
+export NOWBUILD="3"
 
 echo "[Cross compile Python ${PYVER} (Build ${NOWBUILD}) for iOS]"
 echo "[Script by Linus Yang]"
@@ -133,9 +133,14 @@ if [ -x "$DPKGLOC" ]; then
     tar zxf "${SITELIB}"
     mkdir -p "DEBIAN"
     NOWSIZE="$(du -s -k usr | awk '{print $1}')"
-    CTRLFILE="Package: com.linusyang.python27\nPriority: optional\nProvides: python\nConflicts: python\nReplaces: python\nSection: Scripting\nInstalled-Size: $NOWSIZE\nMaintainer: Linus Yang <laokongzi@gmail.com>\nSponsor: Linus Yang <http://linusyang.com/>\nArchitecture: iphoneos-arm\nVersion: ${PYVER}-$NOWBUILD\nDepends: berkeleydb, bzip2, libffi, ncurses, openssl, readline, sqlite3\nDescription: architectural programming language\nName: Python $PYSHORT\nHomepage: http://www.python.org/\nTag: purpose::console\n"
     PREFILE="#!/bin/sh\n/usr/libexec/cydia/move.sh /usr/lib/python${PYSHORT}\nexit 0\n"
-    DEBNAME="com.linusyang.python27_${PYVER}-$NOWBUILD"
+
+    CTRLFILE_YANG="Package: com.linusyang.python27\nPriority: optional\nProvides: python\nConflicts: python\nReplaces: python\nSection: Scripting\nInstalled-Size: $NOWSIZE\nMaintainer: Linus Yang <laokongzi@gmail.com>\nSponsor: Linus Yang <http://linusyang.com/>\nArchitecture: iphoneos-arm\nVersion: ${PYVER}-$NOWBUILD\nDepends: berkeleydb, bzip2, libffi, ncurses, openssl, readline, sqlite3\nDescription: architectural programming language\nName: Python $PYSHORT\nHomepage: http://www.python.org/\nTag: purpose::console\n"
+    DEBNAME_YANG="com.linusyang.python27_${PYVER}-$NOWBUILD"
+
+    CTRLFILE="Package: python\nPriority: optional\nSection: Scripting\nInstalled-Size: $NOWSIZE\nMaintainer: Linus Yang <laokongzi@gmail.com>\nSponsor: Linus Yang <http://linusyang.com/>\nArchitecture: iphoneos-arm\nVersion: ${PYVER}-$NOWBUILD\nDepends: berkeleydb, bzip2, libffi, ncurses, openssl, readline, sqlite3\nDescription: architectural programming language\nName: Python\nHomepage: http://www.python.org/\nTag: purpose::console\n"
+    DEBNAME="python_${PYVER}-$NOWBUILD"
+
     echo -ne "$CTRLFILE" > DEBIAN/control
     echo -ne "$PREFILE" > DEBIAN/preinst
     chmod +x DEBIAN/preinst
